@@ -1,0 +1,28 @@
+/* Simple styling to center the game */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background: #0b1220; color: #e6eef8; }
+
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+}
+
+canvas {
+  background: linear-gradient(180deg, #071026 0%, #0f1724 100%);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+  border-radius: 8px;
+  cursor: crosshair;
+}
+
+.controls {
+  max-width: 800px;
+  text-align: center;
+  font-size: 14px;
+  color: #9fb3d7;
+  line-height: 1.4;
+}
