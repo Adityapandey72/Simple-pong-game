@@ -1,20 +1,200 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Simple Pong with Sound</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<title>Ping Pong Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+        height: 100vh;
+        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+    }
+
+    .game-container {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(15px);
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: 0 0 30px rgba(0,0,0,0.6);
+    }
+
+    .scoreboard {
+        display: flex;
+        justify-content: space-between;
+        font-size: 22px;
+        margin-bottom: 10px;
+        padding: 0 20px;
+    }
+
+    canvas {
+        background: rgba(0,0,0,0.4);
+        border-radius: 15px;
+        display: block;
+        box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
+    }
+
+    .footer {
+        text-align: center;
+        margin-top: 10px;
+        font-size: 14px;
+        opacity: 0.8;
+    }
+</style>
 </head>
+
 <body>
-  <div class="container">
-    <canvas id="gameCanvas" width="800" height="500"></canvas>
-    <div class="controls">
-      <p>Controls: Move your mouse over the canvas or use Arrow Up / Arrow Down to move the left paddle.</p>
-      <p>Sound: Click, touch, or press any key once to enable audio (required by some browsers).</p>
-      <p>First to score keeps going — scores update automatically.</p>
+
+<div class="game-container">
+    <div class="scoreboard">
+        <div>Player 1: <span id="score1">0</span></div>
+        <div>Player 2: <span id="score2">0</span></div>
     </div>
-  </div>
-  <script src="script.js"></script>
+
+    <canvas id="game" width="700" height="400"></canvas>
+
+    <div class="footer">
+        W/S &nbsp;|&nbsp; ↑ / ↓
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+let score1 = 0;
+let score2 = 0;
+
+const paddleWidth = 12;
+const paddleHeight = 90;
+
+const leftPaddle = {
+    x: 15,
+    y: canvas.height / 2 - paddleHeight / 2,
+    dy: 6
+};
+
+const rightPaddle = {
+    x: canvas.width - paddleWidth - 15,
+    y: canvas.height / 2 - paddleHeight / 2,
+    dy: 6
+};
+
+const ball = {
+    x: canvas.width / 2,
+    y: canvas.height / 2,
+    radius: 8,
+    speed: 5,
+    dx: 5,
+    dy: 5
+};
+
+const keys = {};
+
+document.addEventListener("keydown", e => keys[e.key] = true);
+document.addEventListener("keyup", e => keys[e.key] = false);
+
+function drawRect(x, y, w, h) {
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(x, y, w, h);
+}
+
+function drawBall() {
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+    ctx.fillStyle = "#00fff0";
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = "#00fff0";
+    ctx.fill();
+    ctx.shadowBlur = 0;
+}
+
+function movePaddles() {
+    if (keys["w"] && leftPaddle.y > 0) leftPaddle.y -= leftPaddle.dy;
+    if (keys["s"] && leftPaddle.y < canvas.height - paddleHeight) leftPaddle.y += leftPaddle.dy;
+
+    if (keys["ArrowUp"] && rightPaddle.y > 0) rightPaddle.y -= rightPaddle.dy;
+    if (keys["ArrowDown"] && rightPaddle.y < canvas.height - paddleHeight) rightPaddle.y += rightPaddle.dy;
+}
+
+function moveBall() {
+    ball.x += ball.dx;
+    ball.y += ball.dy;
+
+    if (ball.y <= 0 || ball.y >= canvas.height) {
+        ball.dy *= -1;
+    }
+
+    if (
+        ball.x - ball.radius < leftPaddle.x + paddleWidth &&
+        ball.y > leftPaddle.y &&
+        ball.y < leftPaddle.y + paddleHeight
+    ) {
+        ball.dx *= -1;
+    }
+
+    if (
+        ball.x + ball.radius > rightPaddle.x &&
+        ball.y > rightPaddle.y &&
+        ball.y < rightPaddle.y + paddleHeight
+    ) {
+        ball.dx *= -1;
+    }
+
+    if (ball.x < 0) {
+        score2++;
+        resetBall();
+    }
+
+    if (ball.x > canvas.width) {
+        score1++;
+        resetBall();
+    }
+
+    document.getElementById("score1").textContent = score1;
+    document.getElementById("score2").textContent = score2;
+}
+
+function resetBall() {
+    ball.x = canvas.width / 2;
+    ball.y = canvas.height / 2;
+    ball.dx *= -1;
+}
+
+function drawNet() {
+    for (let i = 0; i < canvas.height; i += 20) {
+        ctx.fillStyle = "rgba(255,255,255,0.3)";
+        ctx.fillRect(canvas.width / 2 - 1, i, 2, 10);
+    }
+}
+
+function gameLoop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    drawNet();
+    drawRect(leftPaddle.x, leftPaddle.y, paddleWidth, paddleHeight);
+    drawRect(rightPaddle.x, rightPaddle.y, paddleWidth, paddleHeight);
+    drawBall();
+
+    movePaddles();
+    moveBall();
+
+    requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
+</script>
+
 </body>
 </html>
